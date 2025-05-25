@@ -6,9 +6,14 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.content.Media;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +26,7 @@ public class OllamaChatService {
     private final List<Message> conversationHistory = new ArrayList<>();
 
     public ChatResponse chat(String message) {
-
+        System.out.println("Fez a pergunta: " + message);
         conversationHistory.add(new UserMessage(message));
 
         Prompt prompt = new Prompt(conversationHistory);
@@ -35,6 +40,30 @@ public class OllamaChatService {
         }
 
         return response;
+    }
+
+    public ChatResponse chatWithImage(String message, MultipartFile imageFile) {
+        try {
+
+            UserMessage userMessage = new UserMessage(message, new Media(MimeTypeUtils.IMAGE_PNG, (Resource) imageFile));
+            conversationHistory.add(userMessage);
+
+            Prompt prompt = new Prompt(conversationHistory);
+            ChatResponse response = chatModel.call(prompt);
+
+            if (!response.getResults().isEmpty()) {
+                String assistantReply= response.getResults().getFirst().getOutput().getText();
+                if (assistantReply != null) {
+                    conversationHistory.add(new AssistantMessage(assistantReply));
+                }
+            }
+
+            return response;
+
+
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao processar a imagem", e);
+        }
     }
 
     public void resetHistory() {
