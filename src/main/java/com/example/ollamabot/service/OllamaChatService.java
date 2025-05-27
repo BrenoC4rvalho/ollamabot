@@ -1,5 +1,6 @@
 package com.example.ollamabot.service;
 
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -23,21 +24,25 @@ public class OllamaChatService {
     @Autowired
     private ChatModel chatModel;
 
+    @Autowired
+    private ChatClient chatClient;
+
     private final List<Message> conversationHistory = new ArrayList<>();
 
-    public ChatResponse chat(String message) {
+    public String chat(String message) {
         System.out.println("Fez a pergunta: " + message);
         conversationHistory.add(new UserMessage(message));
 
         Prompt prompt = new Prompt(conversationHistory);
-        ChatResponse response = chatModel.call(prompt);
+        //ChatResponse response = chatModel.call(prompt);
 
-        if(!response.getResults().isEmpty()) {
-            String assistantReply = response.getResults().getFirst().getOutput().getText();
-            if (assistantReply != null) {
-                conversationHistory.add(new AssistantMessage(assistantReply));
-            }
-        }
+        String response = chatClient.prompt(prompt)
+                .system("Seu nome e Breno")
+                .call()
+                .content();
+
+        assert response != null;
+        conversationHistory.add(new AssistantMessage(response));
 
         return response;
     }
@@ -70,27 +75,5 @@ public class OllamaChatService {
     public void resetHistory() {
         conversationHistory.clear();
     }
-
-//    var imageResource = new ClassPathResource("/multimodal.test.png");
-
-//    var userMessage = new UserMessage("Explain what do you see on this picture?",
-//            new Media(MimeTypeUtils.IMAGE_PNG, this.imageResource));
-//
-//    ChatResponse response = chatModel.call(new Prompt(this.userMessage,
-//            OllamaOptions.builder().model(OllamaModel.LLAVA)).build());
-//
-
-//    public ChatResponse chatWithImage(String message, Resource image) {
-//        Media media = new Media(MimeTypeUtils.IMAGE_PNG, image);
-//        UserMessage userMessage = new UserMessage(message, media);
-//        conversationHistory.add(userMessage);
-//
-//        Prompt prompt = new Prompt(conversationHistory);
-//        ChatResponse response = chatModel.call(prompt);
-//        conversationHistory.add(new AssistantMessage(response.getContent()));
-//
-//        return response;
-//    }
-
 
 }
