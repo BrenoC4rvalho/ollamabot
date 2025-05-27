@@ -43,27 +43,28 @@ public class OllamaChatService {
     }
 
     public ChatResponse chatWithImage(String message, MultipartFile imageFile) {
-        try {
 
-            UserMessage userMessage = new UserMessage(message, new Media(MimeTypeUtils.IMAGE_PNG, (Resource) imageFile));
-            conversationHistory.add(userMessage);
+        Resource imageResource = imageFile.getResource();
 
-            Prompt prompt = new Prompt(conversationHistory);
-            ChatResponse response = chatModel.call(prompt);
+        UserMessage userMessage = UserMessage.builder()
+                .text(message)
+                .media(new Media(MimeTypeUtils.IMAGE_PNG, imageResource))
+                .build();
 
-            if (!response.getResults().isEmpty()) {
-                String assistantReply= response.getResults().getFirst().getOutput().getText();
-                if (assistantReply != null) {
-                    conversationHistory.add(new AssistantMessage(assistantReply));
-                }
+        conversationHistory.add(userMessage);
+
+        Prompt prompt = new Prompt(conversationHistory);
+        ChatResponse response = chatModel.call(prompt);
+
+        if (!response.getResults().isEmpty()) {
+            String assistantReply= response.getResults().getFirst().getOutput().getText();
+            if (assistantReply != null) {
+                conversationHistory.add(new AssistantMessage(assistantReply));
             }
-
-            return response;
-
-
-        } catch (IOException e) {
-            throw new RuntimeException("Erro ao processar a imagem", e);
         }
+
+        return response;
+
     }
 
     public void resetHistory() {
