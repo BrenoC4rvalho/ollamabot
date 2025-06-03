@@ -1,11 +1,9 @@
 package com.example.ollamabot.service;
 
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.content.Media;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +18,9 @@ import java.util.List;
 @Service
 public class OllamaChatService {
 
-    @Autowired
-    private ChatModel chatModel;
 
     @Autowired
-    private ChatClient chatClient;
+    private ChatModel chatModel;
 
     private final List<Message> conversationHistory = new ArrayList<>();
 
@@ -35,7 +31,7 @@ public class OllamaChatService {
         Prompt prompt = new Prompt(conversationHistory);
         //ChatResponse response = chatModel.call(prompt);
 
-        String response = chatClient.prompt(prompt)
+        String response = chatModel.call(prompt)
                 .system("Seu nome e Breno")
                 .call()
                 .content();
@@ -46,7 +42,7 @@ public class OllamaChatService {
         return response;
     }
 
-    public ChatResponse chatWithImage(String message, MultipartFile imageFile) {
+    public String chatWithImage(String message, MultipartFile imageFile) {
 
         Resource imageResource = imageFile.getResource();
 
@@ -58,14 +54,10 @@ public class OllamaChatService {
         conversationHistory.add(userMessage);
 
         Prompt prompt = new Prompt(conversationHistory);
-        ChatResponse response = chatModel.call(prompt);
+        String response = chatModel.call(prompt).toString();
 
-        if (!response.getResults().isEmpty()) {
-            String assistantReply= response.getResults().getFirst().getOutput().getText();
-            if (assistantReply != null) {
-                conversationHistory.add(new AssistantMessage(assistantReply));
-            }
-        }
+        assert response != null;
+        conversationHistory.add(new AssistantMessage(response));
 
         return response;
 
