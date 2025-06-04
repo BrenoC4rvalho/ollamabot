@@ -25,7 +25,9 @@ public class ChatController {
         @RequestParam("message") String message,
         @RequestParam("image")MultipartFile imageFile
     ) {
-        var response = chatService.chatWithImage(message, imageFile);
+//        var response = chatService.chatWithImage(message, imageFile);
+        var response = "teste";
+
         return ResponseEntity.ok(response);
 
     }
