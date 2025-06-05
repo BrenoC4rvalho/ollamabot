@@ -2,10 +2,14 @@ package com.example.ollamabot.controller;
 
 import com.example.ollamabot.service.OllamaChatService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/chat")
@@ -20,16 +24,22 @@ public class ChatController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(value = "/questionImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> chatWithImage(
-        @RequestParam("message") String message,
-        @RequestParam("image")MultipartFile imageFile
-    ) {
-//        var response = chatService.chatWithImage(message, imageFile);
-        var response = "teste";
+    @PostMapping(value = "/describe-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> describeImage(
+            @RequestParam("image") MultipartFile image,
+            @RequestParam(value = "question", defaultValue = "Descreva esta imagem em detalhes.") String question
+    ) throws IOException {
 
-        return ResponseEntity.ok(response);
+        if (image.isEmpty()) {
+            return ResponseEntity.badRequest().body("Por favor, selecione uma imagem para enviar.");
+        }
+        byte[] imageData = image.getBytes();
+        Resource imageResource = new ByteArrayResource(imageData);
 
+        MediaType mediaType = MediaType.parseMediaType(image.getContentType());
+
+        String description = chatService.describeImage(imageResource, mediaType, question);
+        return ResponseEntity.ok(description);
     }
 
 }
