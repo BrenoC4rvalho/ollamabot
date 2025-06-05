@@ -14,9 +14,9 @@ public class ChatController {
     @Autowired
     OllamaChatService chatService;
 
-    @GetMapping("/generate")
+    @GetMapping("/teacher")
     public ResponseEntity<?> chatbot(@RequestParam String message) {
-        var response = chatService.chat(message);
+        var response = chatService.askAsTeacher(message);
         return ResponseEntity.ok(response);
     }
 
@@ -30,12 +30,6 @@ public class ChatController {
 
         return ResponseEntity.ok(response);
 
-    }
-
-    @GetMapping("/reset")
-    public ResponseEntity<?> resetChat() {
-        chatService.resetHistory();
-        return ResponseEntity.ok().body("Reset Success!");
     }
 
 }
