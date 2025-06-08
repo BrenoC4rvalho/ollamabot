@@ -1,0 +1,21 @@
+# compose.yml
+services:
+  db:
+    hostname: db
+    image: ankane/pgvector
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=shopdb
+      - POSTGRES_USER=shopuser
+      - POSTGRES_PASSWORD=shoppass
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ./postgresql-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama-data:/root/.ollama
