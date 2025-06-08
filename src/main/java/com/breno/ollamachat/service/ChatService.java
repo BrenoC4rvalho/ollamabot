@@ -1,6 +1,14 @@
 package com.breno.ollamachat.service;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.content.Media;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaModel;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -36,7 +44,22 @@ public class ChatService {
 
     public String describeImage(Resource imageResource, MediaType mediaType, String question) {
 
-        return "teste";
+        var ollamaApi = OllamaApi.builder().build();
+
+        var chatModel = OllamaChatModel.builder()
+                .ollamaApi(ollamaApi)
+                .defaultOptions(
+                        OllamaOptions.builder()
+                                .model(OllamaModel.LLAVA)
+                                .temperature(0.9)
+                                .build())
+                .build();
+
+        var userMessage = new UserMessage(question, new Media(mediaType, imageResource));
+
+        var response = chatModel.call(userMessage);
+
+        return response;
     }
 
 }
